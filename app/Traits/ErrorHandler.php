@@ -24,7 +24,6 @@ trait ErrorHandler
                 'user_id' => auth()->id(),
                 'url' => $request ? $request->fullUrl() : null,
             ]);
-            
             return $this->errorResponse('The requested item was not found.', 404);
         } catch (ValidationException $e) {
             Log::warning('Validation failed', [
@@ -32,7 +31,6 @@ trait ErrorHandler
                 'user_id' => auth()->id(),
                 'url' => $request ? $request->fullUrl() : null,
             ]);
-            
             if ($request && $request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
@@ -40,7 +38,6 @@ trait ErrorHandler
                     'errors' => $e->errors()
                 ], 422);
             }
-            
             return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput();
@@ -53,7 +50,6 @@ trait ErrorHandler
                 'user_id' => auth()->id(),
                 'url' => $request ? $request->fullUrl() : null,
             ]);
-            
             return $this->errorResponse($fallbackMessage, 500);
         }
     }

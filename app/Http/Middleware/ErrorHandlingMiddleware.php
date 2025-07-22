@@ -31,14 +31,12 @@ class ErrorHandlingMiddleware
                 'user_id' => auth()->id(),
                 'url' => $request->fullUrl(),
             ]);
-            
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'The requested resource was not found.'
                 ], 404);
             }
-            
             return redirect()->back()->with('error', 'The requested item was not found.');
         } catch (ValidationException $e) {
             Log::warning('Validation failed in middleware', [
@@ -46,7 +44,6 @@ class ErrorHandlingMiddleware
                 'user_id' => auth()->id(),
                 'url' => $request->fullUrl(),
             ]);
-            
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
@@ -54,7 +51,6 @@ class ErrorHandlingMiddleware
                     'errors' => $e->errors()
                 ], 422);
             }
-            
             return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput();
@@ -65,14 +61,12 @@ class ErrorHandlingMiddleware
                 'user_id' => auth()->id(),
                 'url' => $request->fullUrl(),
             ]);
-            
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'The requested page was not found.'
                 ], 404);
             }
-            
             return redirect()->back()->with('error', 'The requested page was not found.');
         } catch (MethodNotAllowedHttpException $e) {
             Log::warning('Method not allowed in middleware', [
@@ -81,14 +75,12 @@ class ErrorHandlingMiddleware
                 'user_id' => auth()->id(),
                 'url' => $request->fullUrl(),
             ]);
-            
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Method not allowed.'
                 ], 405);
             }
-            
             return redirect()->back()->with('error', 'Method not allowed.');
         } catch (Exception $e) {
             Log::error('Unexpected error in middleware', [
@@ -99,14 +91,12 @@ class ErrorHandlingMiddleware
                 'user_id' => auth()->id(),
                 'url' => $request->fullUrl(),
             ]);
-            
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'An unexpected error occurred. Please try again.'
                 ], 500);
             }
-            
             return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.');
         }
     }
