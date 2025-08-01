@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CheckUserApproval
 {
@@ -25,8 +26,22 @@ class CheckUserApproval
             
             // For owner users, check approval status
             if ($user->approval_status !== 'approved') {
-                // Allow access to payment/subscription/review/logout routes
+                // Allow access to essential routes
                 $allowedRoutes = [
+                    // Core pages
+                    'dashboard',
+                    'home',
+                    
+                    // Authentication & Profile
+                    'logout',
+                    'profile.edit',
+                    'profile.update',
+                    'password.update',
+                    
+                    // Account Review & Approval
+                    'account.review',
+                    
+                    // Subscription & Payment
                     'subscriptions.index',
                     'subscriptions.show',
                     'subscriptions.store',
@@ -36,15 +51,53 @@ class CheckUserApproval
                     'subscription.paypal',
                     'subscription.flutterwave',
                     'payment.verification.upload',
-                    'logout',
-                    'profile.edit',
-                    'profile.update',
-                    'password.update',
-                    'account.review',
+                    'subscription.transaction',
+                    
+                    // Settings (all settings routes)
+                    'setting.index',
+                    'setting.account',
+                    'setting.password',
+                    'setting.general',
+                    'setting.smtp',
+                    'setting.payment',
+                    'setting.site.seo',
+                    'setting.google.recaptcha',
+                    'setting.company',
+                    'setting.twofa.enable',
+                    'setting.tutorial_videos',
+                    'setting.footer',
+                    'theme.settings',
+                    'setting.smtp.test',
+                    'setting.smtp.testing',
+                    
+                    // Language
+                    'language.change',
+                    
+                    // Footer
+                    'footerSetting',
+                    
+                    // OTP/2FA
+                    'otp.show',
+                    'otp.check',
+                    '2fa.disable',
                 ];
-                if (in_array($request->route()->getName(), $allowedRoutes)) {
+                
+                $currentRoute = $request->route() ? $request->route()->getName() : null;
+                
+                // Log for debugging
+                Log::info('CheckUserApproval middleware', [
+                    'user_id' => $user->id,
+                    'user_type' => $user->type,
+                    'approval_status' => $user->approval_status,
+                    'current_route' => $currentRoute,
+                    'url' => $request->fullUrl(),
+                    'is_allowed' => in_array($currentRoute, $allowedRoutes)
+                ]);
+                
+                if (in_array($currentRoute, $allowedRoutes)) {
                     return $next($request);
                 }
+                
                 // Redirect to review page for all other routes
                 return redirect()->route('account.review');
             }

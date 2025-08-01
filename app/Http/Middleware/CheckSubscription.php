@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CheckSubscription
 {
@@ -24,6 +25,20 @@ class CheckSubscription
 
             // Define allowed routes for unapproved users
             $allowedRoutes = [
+                // Core pages
+                'dashboard',
+                'home',
+                
+                // Authentication & Profile
+                'logout',
+                'profile.edit',
+                'profile.update',
+                'password.update',
+                
+                // Account Review & Approval
+                'account.review',
+                
+                // Subscription & Payment
                 'subscriptions.index',
                 'subscriptions.show',
                 'subscriptions.store',
@@ -33,16 +48,48 @@ class CheckSubscription
                 'subscription.paypal',
                 'subscription.flutterwave',
                 'payment.verification.upload',
-                'logout',
-                'profile.edit',
-                'profile.update',
-                'password.update',
-                'account.review',
-                // Add any other payment/upload related routes here
+                'subscription.transaction',
+                
+                // Settings (all settings routes)
+                'setting.index',
+                'setting.account',
+                'setting.password',
+                'setting.general',
+                'setting.smtp',
+                'setting.payment',
+                'setting.site.seo',
+                'setting.google.recaptcha',
+                'setting.company',
+                'setting.twofa.enable',
+                'setting.tutorial_videos',
+                'setting.footer',
+                'theme.settings',
+                'setting.smtp.test',
+                'setting.smtp.testing',
+                
+                // Language
+                'language.change',
+                
+                // Footer
+                'footerSetting',
+                
+                // OTP/2FA
+                'otp.show',
+                'otp.check',
+                '2fa.disable',
             ];
 
             $currentRoute = $request->route() ? $request->route()->getName() : null;
-            \Log::info('CheckSubscription middleware: current route = ' . $currentRoute);
+            
+            // Log for debugging
+            Log::info('CheckSubscription middleware', [
+                'user_id' => $user->id,
+                'user_type' => $user->type,
+                'approval_status' => $user->approval_status,
+                'current_route' => $currentRoute,
+                'url' => $request->fullUrl(),
+                'is_allowed' => in_array($currentRoute, $allowedRoutes)
+            ]);
 
             // Only block access to non-allowed routes if not approved
             if ($user->approval_status !== 'approved') {
