@@ -22,6 +22,11 @@ class AuthenticatedSessionController extends Controller
         $user=\App\Models\User::find(1);
         \App::setLocale($user->lang);
 
+        // If user is already logged in, redirect to dashboard
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.login');
     }
 
@@ -68,9 +73,17 @@ class AuthenticatedSessionController extends Controller
 
     public function destroy(Request $request)
     {
+        // Clear all session data
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
+        // Clear any 2FA session data
+        $request->session()->forget('2fa_checked');
+        
+        // Clear any other custom session data
+        $request->session()->flush();
+        
         return redirect('/');
     }
 }

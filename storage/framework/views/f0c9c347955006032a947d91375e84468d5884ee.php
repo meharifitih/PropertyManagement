@@ -99,6 +99,19 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Session Timeout Auto Logout -->
+    <script>
+        (function() {
+            // Session timeout based on SESSION_LIFETIME config
+            const sessionLifetime = <?php echo e(config('session.lifetime', 120)); ?> * 60 * 1000; // Convert to milliseconds
+            
+            // Auto logout when session expires
+            setTimeout(function() {
+                window.location.href = '<?php echo e(route("login")); ?>?expired=1';
+            }, sessionLifetime);
+        })();
+    </script>
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 <!-- [Body] end -->

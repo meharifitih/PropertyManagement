@@ -80,6 +80,7 @@ class CheckSubscription
             ];
 
             $currentRoute = $request->route() ? $request->route()->getName() : null;
+            $currentPath = $request->path();
             
             // Log for debugging
             Log::info('CheckSubscription middleware', [
@@ -87,16 +88,27 @@ class CheckSubscription
                 'user_type' => $user->type,
                 'approval_status' => $user->approval_status,
                 'current_route' => $currentRoute,
+                'current_path' => $currentPath,
                 'url' => $request->fullUrl(),
                 'is_allowed' => in_array($currentRoute, $allowedRoutes)
             ]);
 
             // Only block access to non-allowed routes if not approved
             if ($user->approval_status !== 'approved') {
-                if (!in_array($currentRoute, $allowedRoutes)) {
-                    return redirect()->route('account.review')
-                        ->with('error', __('Your account is pending approval. Please select and pay for a subscription.'));
+                // Check if current route is allowed or if we're already on account.review
+                if (in_array($currentRoute, $allowedRoutes) || 
+                    $currentPath === 'account/review' ||
+                    $request->is('account/review*')) {
+                    return $next($request);
                 }
+                
+                // Prevent redirect loop by checking if we're already redirecting
+                if ($request->is('account/review*') || $currentRoute === 'account.review') {
+                    return $next($request);
+                }
+                
+                return redirect()->route('account.review')
+                    ->with('error', __('Your account is pending approval. Please select and pay for a subscription.'));
             }
         }
 

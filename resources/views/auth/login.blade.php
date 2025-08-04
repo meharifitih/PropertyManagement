@@ -35,6 +35,11 @@
             @if (session('status'))
                 <div class="alert alert-success" role="alert">{{ session('status') }}</div>
             @endif
+            @if (request()->get('expired'))
+                <div class="alert alert-warning" role="alert">
+                    <strong>{{ __('Session Expired') }}</strong> - {{ __('Your session has expired due to inactivity. Please login again.') }}
+                </div>
+            @endif
             <div class="form-floating mb-3">
                 <input type="email" class="form-control" id="email" name="email"
                     placeholder="{{ __('Email address') }}" />
