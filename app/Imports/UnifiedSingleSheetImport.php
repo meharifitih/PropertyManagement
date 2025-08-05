@@ -135,6 +135,10 @@ class UnifiedSingleSheetImport implements ToModel, WithHeadingRow
                     $user->email = $row['email'];
                     $user->phone_number = $normalizedPhone;
                     $user->password = Hash::make($password);
+                    $user->type = $userRole->name;
+                    $user->email_verified_at = now();
+                    $user->profile = 'avatar.png';
+                    $user->lang = 'english';
                     $user->parent_id = parentId();
                     $user->save();
 

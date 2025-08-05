@@ -45,7 +45,9 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
         $loginUser = Auth::user();
         
-        if(empty($loginUser->email_verified_at)) {
+        // Only check email verification if the setting is enabled
+        $owner_email_verification = getSettingsValByName('owner_email_verification');
+        if($owner_email_verification == 'on' && empty($loginUser->email_verified_at)) {
             auth()->logout();
             return redirect()->route('login')->with('error', __('Verification required: Please check your email to verify your account before continuing.'));
         }
