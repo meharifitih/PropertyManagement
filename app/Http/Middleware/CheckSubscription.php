@@ -25,9 +25,7 @@ class CheckSubscription
 
             // Define allowed routes for unapproved users
             $allowedRoutes = [
-                // Core pages
-                'dashboard',
-                'home',
+                // Core pages (do NOT allow dashboard/home for pending users)
                 
                 // Authentication & Profile
                 'logout',

@@ -28,9 +28,7 @@ class CheckUserApproval
             if ($user->approval_status !== 'approved') {
                 // Allow access to essential routes
                 $allowedRoutes = [
-                    // Core pages
-                    'dashboard',
-                    'home',
+                    // Core pages (do NOT allow dashboard/home for pending users)
                     
                     // Authentication & Profile
                     'logout',

@@ -22,8 +22,12 @@ class AuthenticatedSessionController extends Controller
         $user=\App\Models\User::find(1);
         \App::setLocale($user->lang);
 
-        // If user is already logged in, redirect to dashboard
+        // If user is already logged in, route appropriately
         if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->type === 'owner' && ($user->approval_status ?? null) !== 'approved') {
+                return redirect()->route('account.review');
+            }
             return redirect()->route('dashboard');
         }
 
@@ -45,9 +49,14 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
         $loginUser = Auth::user();
         
-        // Only check email verification if the setting is enabled
+        // Only enforce email verification for approved owners; pending owners should reach the review page
         $owner_email_verification = getSettingsValByName('owner_email_verification');
-        if($owner_email_verification == 'on' && empty($loginUser->email_verified_at)) {
+        if (
+            $owner_email_verification == 'on' &&
+            $loginUser->type === 'owner' &&
+            ($loginUser->approval_status ?? null) === 'approved' &&
+            empty($loginUser->email_verified_at)
+        ) {
             auth()->logout();
             return redirect()->route('login')->with('error', __('Verification required: Please check your email to verify your account before continuing.'));
         }
@@ -69,6 +78,11 @@ class AuthenticatedSessionController extends Controller
             }
         }
         userLoggedHistory();
+
+        // If owner and not approved, go to account review instead of dashboard
+        if ($loginUser->type === 'owner' && ($loginUser->approval_status ?? null) !== 'approved') {
+            return redirect()->route('account.review');
+        }
 
         return redirect()->intended(RouteServiceProvider::HOME);
     }

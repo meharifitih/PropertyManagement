@@ -103,18 +103,34 @@ class SessionTimeout
         }
 
         if (!$user->is_active) {
-            Log::info('SessionTimeout: User is inactive, redirecting to login');
+            // Do NOT force logout for pending owners; subsequent middleware
+            // (CheckSubscription/CheckUserApproval) will restrict access and
+            // route them to the account review/subscription screens.
+            if (method_exists($user, 'getAttribute') && $user->getAttribute('approval_status') === 'pending') {
+                Log::info('SessionTimeout: User is inactive but pending approval; allowing request to proceed');
+                return $next($request);
+            }
+
+            // If explicitly rejected, or inactive for other reasons, log out
+            Log::info('SessionTimeout: User inactive and not pending — logging out');
             Auth::logout();
-            
-            // Handle AJAX requests
+
             if ($request->expectsJson() || $request->ajax()) {
+                $message = ($user->approval_status ?? null) === 'rejected'
+                    ? 'Your account was rejected. Please contact support.'
+                    : 'Your account has been deactivated. Please contact administrator.';
+
                 return response()->json([
-                    'error' => 'Your account has been deactivated. Please contact administrator.',
+                    'error' => $message,
                     'redirect' => route('login')
                 ], 403);
             }
-            
-            return redirect()->route('login')->with('error', 'Your account has been deactivated. Please contact administrator.');
+
+            $message = ($user->approval_status ?? null) === 'rejected'
+                ? 'Your account was rejected. Please contact support.'
+                : 'Your account has been deactivated. Please contact administrator.';
+
+            return redirect()->route('login')->with('error', $message);
         }
 
         return $next($request);
